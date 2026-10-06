@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: folio-mcp
+    runtime: docker
+    plan: standard
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: MCP_API_KEY
+        generateValue: true
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: UI_ORIGIN
+        sync: false
+      - key: MAX_UPLOAD_MB
+        value: "20"
+      - key: MAX_PAGES
+        value: "40"
+      - key: JOB_TTL_SECONDS
+        value: "86400"

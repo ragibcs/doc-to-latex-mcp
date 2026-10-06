@@ -1,0 +1,13 @@
+# Merge this block into your existing librechat.yaml.
+# Set MCP_API_KEY in the LibreChat server environment to match Render.
+# This service is one trusted workspace, not per-user isolated storage.
+mcpServers:
+  folio:
+    type: streamable-http
+    url: "https://YOUR-SERVICE.onrender.com/mcp"
+    headers:
+      Authorization: "Bearer ${MCP_API_KEY}"
+    requiresOAuth: false
+    serverInstructions: true
+    timeout: 300000
+    initTimeout: 60000

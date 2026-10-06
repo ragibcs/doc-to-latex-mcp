@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Folio — Upload a document</title>
+<style>
+:root{color-scheme:light;--bg:#f7f8fa;--paper:#fff;--ink:#252a35;--muted:#747c8c;--brand:#4b62c9}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,sans-serif}main{max-width:680px;margin:64px auto;padding:0 24px}.brand{font-size:28px;font-weight:700;letter-spacing:-1px;color:var(--brand)}h1{font-size:30px;letter-spacing:-1px;line-height:1.2}p{color:var(--muted)}form{background:var(--paper);border:1px solid color-mix(in srgb,var(--ink) 12%,transparent);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:12px}input,button{font:inherit;border-radius:7px;padding:12px;border:1px solid color-mix(in srgb,var(--ink) 18%,transparent)}input{width:100%;background:var(--paper);color:var(--ink)}button{background:var(--brand);color:var(--paper);cursor:pointer;border:none}button:disabled{opacity:.5;cursor:wait}label{font-weight:600}small{font-size:14px;color:var(--muted)}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--paper);border-radius:8px;padding:20px;font-size:14px}#status{overflow-wrap:anywhere}a{color:var(--brand)}
+</style>
+</head>
+<body><main><div class="brand">folio.</div><h1>Your document, ready for LibreChat.</h1><p>Upload a PDF or Word document to this private MCP service. Then share its job ID with LibreChat.</p>
+<form id="form">
+<label for="key">MCP API key</label><input id="key" type="password" required minlength="32" autocomplete="off" placeholder="Your Render MCP_API_KEY"><small>Your key is sent only to this service. It is not saved in the browser.</small>
+<label for="document">Document</label><input id="document" type="file" required accept=".pdf,.docx"><small>PDF or DOCX · Up to 20 MB · PDFs up to 40 pages</small>
+<button id="submit" type="submit">Upload document</button>
+</form>
+<p id="status" role="status" aria-live="polite"></p><section id="result" hidden><h2>Ready to convert</h2><p>Paste this into your LibreChat conversation with Folio enabled:</p><pre id="prompt"></pre><button type="button" id="copy">Copy prompt</button></section>
+<p><small>Files expire after 24 hours or a service restart. This is a single trusted workspace; all API key holders share access. Editable layout reconstruction is best-effort. Facsimile mode preserves PDF appearance without making its contents editable. Scanned text and math OCR are not included.</small></p>
+<a href="https://www.librechat.ai/docs/configuration/librechat_yaml/object_structure/mcp_servers" target="_blank" rel="noreferrer">LibreChat connection documentation</a>
+</main><script>
+const form=document.getElementById('form'),status=document.getElementById('status'),submit=document.getElementById('submit'),result=document.getElementById('result'),prompt=document.getElementById('prompt');
+form.addEventListener('submit',async(event)=>{event.preventDefault();const file=document.getElementById('document').files[0];if(!file||file.size>20*1024*1024||!file.size){status.textContent='Choose a nonempty file no larger than 20 MB.';return}submit.disabled=true;result.hidden=true;status.textContent='Uploading and inspecting your document…';try{const response=await fetch('/upload?filename='+encodeURIComponent(file.name),{method:'POST',headers:{'Authorization':'Bearer '+document.getElementById('key').value,'Content-Type':'application/octet-stream'},body:file,signal:AbortSignal.timeout(120000)});const data=await response.json();if(!response.ok)throw new Error(data.error||'Upload failed.');document.getElementById('key').value='';status.textContent='Upload complete. Job ID: '+data.job_id;prompt.textContent='Use Folio to convert job '+data.job_id+' to editable LaTeX with convert_document. Explain any limitations and return the project ZIP and compiled PDF download links.';result.hidden=false}catch(error){status.textContent=error.message||'Could not upload the document.'}finally{submit.disabled=false}});
+document.getElementById('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(prompt.textContent);status.textContent='Prompt copied. Paste it into LibreChat.'}catch{status.textContent='Select and copy the prompt above.'}});
+</script></body></html>
